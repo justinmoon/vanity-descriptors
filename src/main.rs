@@ -1,8 +1,10 @@
+use std::str::FromStr;
+use std::sync::mpsc::channel;
+use std::thread::spawn;
+use std::time::Instant;
+
 use bitcoin::Network;
 use miniscript::{Descriptor, DescriptorPublicKey, DescriptorTrait};
-
-use std::time::Instant;
-use std::str::FromStr;
 
 fn main() -> Result<(), anyhow::Error> {
     let args: Vec<String> = std::env::args().collect();
@@ -25,20 +27,37 @@ fn main() -> Result<(), anyhow::Error> {
     }
 
     let secp = bitcoin::secp256k1::Secp256k1::verification_only();
-    let mut index = 0;
     let timer = Instant::now();
-    loop {
-        let address = desc
-            .derived_descriptor(&secp, index)?
-            .address(Network::Bitcoin)?
-            .to_string();
+    let num_threads = num_cpus::get();
+    let (sender, receiver) = channel();
 
-        if address.starts_with(&prefix) {
-            println!("{}", address);
-            println!("Duration: {} seconds", timer.elapsed().as_secs());
-            return Ok(());
-        }
+    for mut index in 0..num_threads {
+        let sender = sender.clone();
+        let prefix = prefix.clone();
+        let secp = secp.clone();
+        let desc = desc.clone();
+        spawn(move || loop {
+            let address = desc
+                .derived_descriptor(&secp, index as u32)
+                .expect("Error: Failed to derive child descriptor")
+                .address(Network::Bitcoin)
+                .expect("Error: Failed to derive address")
+                .to_string();
 
-        index += 1;
+            if address.starts_with(&prefix) {
+                sender
+                    .send(address)
+                    .expect("Error: Couldn't send result over channel");
+            }
+            index += num_threads;
+        });
     }
+
+    let address = receiver
+        .recv()
+        .expect("Error: Couldn't receive result over channel");
+    println!("{}", address);
+    println!("Took {} seconds", timer.elapsed().as_secs());
+
+    Ok(())
 }
