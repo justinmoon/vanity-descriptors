@@ -1,0 +1,11 @@
+[package]
+name = "vanity_descriptors"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.57"
+miniscript = "7.0.0"
+bitcoin = "0.28.1"
