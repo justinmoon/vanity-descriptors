@@ -1,7 +1,12 @@
 [package]
 name = "vanity_descriptors"
-version = "0.1.0"
+version = "0.0.1"
+authors = ["Justin Moon <mail@justinmoon.com>"]
 edition = "2021"
+description = "Create bitcoin vanity addresses from descriptors"
+repository = "https://github.com/justinmoon/vanity-descriptors"
+license = "MIT"
+keyword = ["vanity", "address", "bitcoin"]
 
 [[bin]]
 name = "vd"
