@@ -1,5 +1,7 @@
 use bitcoin::Network;
 use miniscript::{Descriptor, DescriptorPublicKey, DescriptorTrait};
+
+use std::time::Instant;
 use std::str::FromStr;
 
 fn main() -> Result<(), anyhow::Error> {
@@ -24,6 +26,7 @@ fn main() -> Result<(), anyhow::Error> {
 
     let secp = bitcoin::secp256k1::Secp256k1::verification_only();
     let mut index = 0;
+    let timer = Instant::now();
     loop {
         let address = desc
             .derived_descriptor(&secp, index)?
@@ -32,6 +35,7 @@ fn main() -> Result<(), anyhow::Error> {
 
         if address.starts_with(&prefix) {
             println!("{}", address);
+            println!("Duration: {} seconds", timer.elapsed().as_secs());
             return Ok(());
         }
 
